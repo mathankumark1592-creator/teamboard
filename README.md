@@ -1,5 +1,7 @@
 # TeamBoard
 
+**Live demo: https://teamboard-dashboard-demo.netlify.app** (sign in with a demo account from the table below)
+
 A small **Angular 20 + TypeScript** admin dashboard for managing staff, tasks and projects,
 with **role-based access** (admin, manager, staff). It runs entirely in the browser against a
 mock data layer, so there is nothing to set up besides `npm install`.
