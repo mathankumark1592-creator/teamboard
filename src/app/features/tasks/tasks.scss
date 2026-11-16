@@ -1,0 +1,20 @@
+.form { margin-bottom: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 14px; }
+.actions { display: flex; gap: 8px; }
+
+.toolbar { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.search { flex: 1 1 240px; }
+.filter { flex: 0 1 200px; }
+
+.sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.inline { width: auto; padding: 4px 8px; font-size: 0.85rem; }
+.row-actions { white-space: nowrap; display: flex; gap: 6px; }
+.empty { text-align: center; color: var(--muted); padding: 28px 12px; }
+
+.pager {
+  display: flex; justify-content: flex-end; align-items: center; gap: 12px;
+  margin-top: 12px; font-size: 0.85rem; color: var(--muted);
+}

@@ -1,0 +1,139 @@
+<div class="page-head">
+  <div>
+    <h1>Tasks</h1>
+    <p class="muted">
+      {{ result().total }} {{ result().total === 1 ? 'task' : 'tasks' }}
+      @if (!canManage()) { assigned to you }
+    </p>
+  </div>
+  @if (canManage()) {
+    <button type="button" class="btn" (click)="openNew()">+ New task</button>
+  }
+</div>
+
+@if (editing(); as current) {
+  <form class="card form" [formGroup]="form" (ngSubmit)="save()" novalidate aria-label="Task form">
+    <h2>{{ current === 'new' ? 'New task' : 'Edit task' }}</h2>
+
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" formControlName="title" />
+      @if (invalid('title')) {
+        <p class="error">
+          @if (form.controls.title.hasError('required')) { Title is required }
+          @else if (form.controls.title.hasError('minlength')) { Use at least 3 characters }
+          @else { Title is too long (max 80) }
+        </p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" rows="2" formControlName="description"></textarea>
+      @if (invalid('description')) { <p class="error">Description is too long (max 300)</p> }
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="assignee">Assignee</label>
+        <select id="assignee" formControlName="assigneeId">
+          <option [ngValue]="0" disabled>Select…</option>
+          @for (u of assignees(); track u.id) {
+            <option [ngValue]="u.id">{{ u.name }}</option>
+          }
+        </select>
+        @if (invalid('assigneeId')) { <p class="error">Choose an assignee</p> }
+      </div>
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status">
+          @for (s of statusOptions; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+        </select>
+      </div>
+      <div class="field">
+        <label for="priority">Priority</label>
+        <select id="priority" formControlName="priority">
+          @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+        </select>
+      </div>
+      <div class="field">
+        <label for="due">Due date</label>
+        <input id="due" type="date" formControlName="dueDate" />
+        @if (invalid('dueDate')) { <p class="error">Pick a due date</p> }
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn">Save</button>
+      <button type="button" class="btn btn--ghost" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+}
+
+<section class="card">
+  <div class="toolbar">
+    <div class="search">
+      <label for="search" class="sr">Search tasks</label>
+      <input id="search" type="search" placeholder="Search title, notes or person…"
+             [value]="search()" (input)="setSearch($any($event.target).value)" />
+    </div>
+    <div class="filter">
+      <label for="statusFilter" class="sr">Filter by status</label>
+      <select id="statusFilter" [value]="status()" (change)="setStatus($any($event.target).value)">
+        <option value="all">All statuses</option>
+        @for (s of statusOptions; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th [attr.aria-sort]="ariaSort('title')"><button type="button" (click)="sortBy('title')">Title</button></th>
+          <th [attr.aria-sort]="ariaSort('assignee')"><button type="button" (click)="sortBy('assignee')">Assignee</button></th>
+          <th [attr.aria-sort]="ariaSort('status')"><button type="button" (click)="sortBy('status')">Status</button></th>
+          <th [attr.aria-sort]="ariaSort('priority')"><button type="button" (click)="sortBy('priority')">Priority</button></th>
+          <th [attr.aria-sort]="ariaSort('dueDate')"><button type="button" (click)="sortBy('dueDate')">Due</button></th>
+          @if (canManage()) { <th>Actions</th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of result().rows; track t.id) {
+          <tr>
+            <td>{{ t.title }}</td>
+            <td>{{ name(t.assigneeId) }}</td>
+            <td>
+              @if (canManage()) {
+                <span class="pill pill--{{ t.status }}">{{ statusLabels[t.status] }}</span>
+              } @else {
+                <select class="inline" [attr.aria-label]="'Status for ' + t.title"
+                        [value]="t.status" (change)="changeStatus(t, $any($event.target).value)">
+                  @for (s of statusOptions; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+                </select>
+              }
+            </td>
+            <td><span class="pill pill--{{ t.priority }}">{{ t.priority }}</span></td>
+            <td [class.overdue]="overdue(t)">
+              {{ t.dueDate }}@if (overdue(t)) { <span> · overdue</span> }
+            </td>
+            @if (canManage()) {
+              <td class="row-actions">
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openEdit(t)">Edit</button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="remove(t)">Delete</button>
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr><td [attr.colspan]="canManage() ? 6 : 5" class="empty">No tasks match your filters.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <button type="button" class="btn btn--ghost btn--sm" [disabled]="result().page <= 1" (click)="go(-1)">Previous</button>
+    <span>Page {{ result().page }} of {{ result().pages }}</span>
+    <button type="button" class="btn btn--ghost btn--sm" [disabled]="result().page >= result().pages" (click)="go(1)">Next</button>
+  </div>
+</section>
